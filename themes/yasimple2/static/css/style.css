@@ -30,7 +30,7 @@ body {
     font-family: "Microsoft YaHei", "Helvetica Neue", "Segoe UI", Arial, Sans-Serif;
     /* font-family: Monaco, 'Courier New', monospace; */
     line-height: 1.5em;
-    background-color: #95AFBA;
+    /* background-color: #95AFBA; */
 }
 
 a { color: #1863a1; text-decoration: none; }
@@ -127,8 +127,8 @@ pre code {
     width: 50em;
     margin: 0 auto 3em auto;
     padding: 3em 2em 1.5em 2em;
-    background-color: #fbfffd;
-    border: 1px solid #ddd;
+    /* background-color: #fbfffd;
+    border: 1px solid #ddd; */
 }
 
 #container a {
