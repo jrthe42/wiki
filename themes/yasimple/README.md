@@ -1,2 +1,0 @@
-# yasimple
-theme for simiki

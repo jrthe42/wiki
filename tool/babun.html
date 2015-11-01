@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <link rel="Stylesheet" type="text/css" href="/static/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/static/css/tango.css">
+        <title>Babun 安装配置 - JR's Wiki</title>
+        <meta name="keywords" content="wiki"/>
+        <meta name="description" content="JR's Wiki"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico" media="screen" />
+    </head>
+
+    <body>
+        <!-- <a href="https://github.com/Xuanwo/CLIWiki"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://7xk8bq.com1.z0.glb.clouddn.com/fork.png" alt="Fork me on GitHub" data-canonical-src="http://7xk8bq.com1.z0.glb.clouddn.com/forkme_right_gray_6d6d6d.png"></a> -->
+        <div id="container">
+            
+    <div id="header">
+        <div id="post-nav">
+            
+            <a href="/">Home</a> » <a href="/#tool">tool</a> » Babun 安装配置
+            
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div id="title">Babun 安装配置</div>
+    <div id="content">
+        <p>众所周知，Windows是一个不太适合开发人员使用的操作系统，因为缺乏一个好用的命令行工具。而且不得不承认，诸如 Python 之类常用的开发环境在Windows下用着实在是糟心。Windows下最出名的类Linux环境当然非<a href="https://www.cygwin.com/">Cygwin</a>莫属了，号称 <em>Get that Linux felling on Windows</em>，然而 Cygwin 的使用体验无比糟糕，安装软件的步骤也极其繁琐。而 <a href="http://babun.github.io/">Babun</a> 无疑是一个更好的选择，它基于Cygwin，却又更胜于Cygwin。</p>
+<p>Babun 集成了 <code>cygwin</code> 与 <code>oh-my-zsh</code>，自带包管理工具 <code>pact</code>（基于<code>apt-cyg</code>），并预装了一系列软件。</p>
+<h3 id="_1">安装</h3>
+<p>解压缩到任意文件夹后，运行 <code>install.bat</code>（需管理员权限）</p>
+<h3 id="_2">配置</h3>
+<h4 id="_3">验证</h4>
+<p><code>babun check</code>, 判断环境是否正确
+<code>babun update</code>, 检查是否有新的更新包</p>
+<h4 id="_4">默认根目录</h4>
+<p><code>%userprofile%\.babun\cygwin</code></p>
+<h4 id="_5">包管理</h4>
+<p>Babun 自带叫做 <code>pact</code> 的包管理工具（类似 apt-get 或 yum）， 可使用<code>pact install</code>，<code>pact remove</code>，<code>pact update</code>等管理软件包。</p>
+<h4 id="_6">常用开发配置</h4>
+<p>Babun自带了Python，但没有安装pip， 手动安装：
+<code>wget https://bootstrap.pypa.io/get-pip.py -O - | python</code></p>
+<p>Python开发的一些依赖库：</p>
+<div class="hlcode"><pre><span class="n">pact</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">setuptools</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">libxml2</span><span class="o">-</span><span class="n">devel</span> <span class="n">libxslt</span><span class="o">-</span><span class="n">devel</span> <span class="n">libyaml</span><span class="o">-</span><span class="n">devel</span>
+<span class="n">curl</span> <span class="o">-</span><span class="n">skS</span> <span class="n">https</span><span class="o">:</span><span class="c1">//bootstrap.pypa.io/get-pip.py | python</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">virtualenv</span>
+<span class="n">curl</span> <span class="o">-</span><span class="n">skS</span> <span class="n">https</span><span class="o">:</span><span class="c1">//raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py | python</span>
+</pre></div>
+
+
+<p>常用软件安装：</p>
+<div class="hlcode"><pre><span class="n">pact</span> <span class="n">install</span> <span class="n">tmux</span>        <span class="err">#安装</span><span class="n">tmux</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">screen</span>      <span class="err">#安装</span><span class="n">screen</span> <span class="err">有了这两个不用</span><span class="n">conEmu</span><span class="err">也可以了</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">zip</span>         <span class="err">#安装</span><span class="n">zip</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">lftp</span>        <span class="err">#</span><span class="n">lftp</span><span class="err">命令</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">p7zip</span>       <span class="err">#</span> <span class="n">p7zip</span><span class="err">命令</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">connect</span><span class="o">-</span><span class="n">proxy</span> <span class="err">#</span> <span class="err">基于</span><span class="n">openssh</span><span class="err">的</span><span class="n">socks</span> <span class="n">https</span><span class="err">代理</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">util</span><span class="o">-</span><span class="n">linux</span>    <span class="err">#安装</span><span class="n">linux</span><span class="err">基础命令行工具</span> <span class="n">more</span><span class="o">/</span><span class="n">col</span><span class="o">/</span><span class="n">whereis</span><span class="err">等等命令</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">bind</span><span class="o">-</span><span class="n">utils</span>    <span class="err">#安装</span><span class="n">dig</span><span class="err">命令</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">inetutils</span>     <span class="err">#安装</span><span class="n">Telnet</span><span class="err">等常用网络命令</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">python</span>        <span class="err">#</span><span class="n">python</span><span class="err">环境</span>
+<span class="n">pact</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">crypto</span> <span class="err">#</span><span class="n">python</span> <span class="err">环境</span>
+</pre></div>
+    </div>
+
+        </div>
+        <div id="footer">
+            <span>
+                Copyright © 2015 <a href="http://jrwang.me" target="_blank">jrthe42</a>.
+                Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.
+            </span>
+            <span>
+                Theme by <a href="https://github.com/tankywoo/yasimple" target="_blank">YASimple</a>.
+                Modified by <a href="https://github.com/Xuanwo/CLIWiki" target="_blank">Xuanwo</a>.
+                </span>
+            <p>Last Update 2015-11-01 15:53:52</p>
+        </div>
+    </body>
+</html>

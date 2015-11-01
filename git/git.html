@@ -1,0 +1,129 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <link rel="Stylesheet" type="text/css" href="/static/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/static/css/tango.css">
+        <title>Git CheetSheet - JR's Wiki</title>
+        <meta name="keywords" content="wiki"/>
+        <meta name="description" content="JR's Wiki"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico" media="screen" />
+    </head>
+
+    <body>
+        <!-- <a href="https://github.com/Xuanwo/CLIWiki"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://7xk8bq.com1.z0.glb.clouddn.com/fork.png" alt="Fork me on GitHub" data-canonical-src="http://7xk8bq.com1.z0.glb.clouddn.com/forkme_right_gray_6d6d6d.png"></a> -->
+        <div id="container">
+            
+    <div id="header">
+        <div id="post-nav">
+            
+            <a href="/">Home</a> » <a href="/#git">git</a> » Git CheetSheet
+            
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div id="title">Git CheetSheet</div>
+    <div id="content">
+        <h3 id="init">init</h3>
+<div class="hlcode"><pre>git init
+</pre></div>
+
+
+<h3 id="config">config</h3>
+<div class="hlcode"><pre>git config --global --user.name<span class="o">=</span>name
+git config --global --user.email<span class="o">=</span>name@xxx.xxx
+git config --list
+</pre></div>
+
+
+<h3 id="operation">operation</h3>
+<div class="hlcode"><pre>git status
+git diff
+
+git add &lt;file&gt;
+git commit -m &lt;message&gt;
+git commit -a -m &lt;message&gt;
+git commit --amend
+git revert &lt;commit_id&gt;
+
+git log --pretty<span class="o">=</span>oneline
+git log --graph --pretty<span class="o">=</span>oneline --abbrev-commit
+git reflog
+
+git reset --hard &lt;commit_id&gt;
+
+git diff HEAD -- &lt;file&gt; <span class="c">#see the difference between file in workspace and resp.</span>
+
+git checkout -- &lt;file&gt;  <span class="c">#discard changes in working directory</span>
+git reset HEAD &lt;file&gt;   <span class="c">#unstage</span>
+
+git rm &lt;file&gt;
+git rm --cached &lt;file&gt;  <span class="c">#remove from tracked file list, do not delete it</span>
+git rm -r
+git mv
+
+git remote -v
+git remote add &lt;remotename&gt; &lt;url&gt;
+git pull &lt;remotename&gt; &lt;branch&gt;
+git push -u &lt;remotename&gt; &lt;brach&gt; <span class="c">#-u is optional</span>
+git push &lt;remotename&gt; &lt;localbranch&gt;:&lt;remotebranch&gt;
+git clone &lt;repo&gt;
+git checkout -b &lt;branchname&gt; &lt;remotename/branchname&gt;
+git branch --set-upstream &lt;branchname&gt; &lt;remotename/branchname&gt;
+git remote rename &lt;old_name&gt; &lt;new_name&gt;
+git remote rm &lt;remotename&gt;
+
+
+git push &lt;remotename&gt; :&lt;branch&gt; <span class="c">#delete remote branch, v1</span>
+git push origin --delete branch <span class="c">#delete remote branch, v2</span>
+
+git branch
+git branch &lt;branchname&gt; <span class="c">#create a branch</span>
+git checkout &lt;branchname&gt; <span class="c">#switch to another branch</span>
+git checkout -b &lt;branchname&gt; <span class="c">#create and switch</span>
+git branch -d &lt;branchname&gt; <span class="c">#delete a branch</span>
+git branch -D &lt;branchname&gt; <span class="c">#force delete</span>
+
+git merge &lt;branchname&gt; <span class="c">#merge another branch to current branch</span>
+git merge --no-ff -m &lt;message&gt; &lt;branchname&gt; <span class="c">#merge, disable fast forward, a new commit</span>
+
+
+git stash <span class="c">#save working directory and index state</span>
+git stash list
+git stash apply
+git stash drop
+git stash pop
+
+git tag &lt;tagname&gt;
+git tag &lt;tagname&gt; &lt;commit_id&gt;
+git show &lt;tagname&gt;
+git push origin &lt;tagname&gt;
+git push origin --tags
+git tag -d &lt;tagname&gt;
+git push origin :refs/tags/&lt;tagname&gt;
+
+git apply, patch, e.g. git diff A B | git apply
+</pre></div>
+
+
+<h3 id="notes">notes</h3>
+<p>Git跟踪并管理的是修改，而不是文件。</p>
+<p><code>commit id</code>, 版本号，16进制表示，可通过 <code>git log</code> 查看。</p>
+<p><code>HEAD</code>, 指向的是当前版本，上一个版本即HEAD^, HEAD~</p>
+<p>stage（或index）即暂存区，<code>git add</code>命令就是将工作区中要提交的修改放到暂存区，然后执行 <code>git commit</code>命令就可以将暂存区中的所有修改提交至当前分支。</p>
+    </div>
+
+        </div>
+        <div id="footer">
+            <span>
+                Copyright © 2015 <a href="http://jrwang.me" target="_blank">jrthe42</a>.
+                Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.
+            </span>
+            <span>
+                Theme by <a href="https://github.com/tankywoo/yasimple" target="_blank">YASimple</a>.
+                Modified by <a href="https://github.com/Xuanwo/CLIWiki" target="_blank">Xuanwo</a>.
+                </span>
+            <p>Last Update 2015-11-01 15:53:52</p>
+        </div>
+    </body>
+</html>
