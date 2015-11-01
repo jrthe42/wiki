@@ -1,5 +1,5 @@
 ---
-title: Git CheetSheet
+title: Git CheatSheet
 date: 2015-08-21 15:20:11
 tag: tools
 ---
