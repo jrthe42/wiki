@@ -37,7 +37,7 @@ curl -skS https://raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py 
 常用软件安装：
 ```
 pact install tmux        #安装tmux
-pact install screen      #安装screen 有了这两个不用conEmu也可以了
+pact install screen      #安装screen 有了这两个不用conEmu也可以了  
 pact install zip         #安装zip
 pact install lftp        #lftp命令
 pact install p7zip       # p7zip命令
