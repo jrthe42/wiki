@@ -1,0 +1,534 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <link rel="Stylesheet" type="text/css" href="/static/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/static/css/tango.css">
+        <title>Hadoop、Spark、HBase集群的安装与配置 - JR's Wiki</title>
+        <meta name="keywords" content="wiki"/>
+        <meta name="description" content="JR's Wiki"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico" media="screen" />
+    </head>
+
+    <body>
+        <div id="container">
+            
+    <div id="header">
+        <div id="post-nav">
+            
+            <a href="/">Home</a> » <a href="/#cluster">cluster</a> » Hadoop、Spark、HBase集群的安装与配置
+            
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div id="title">Hadoop、Spark、HBase集群的安装与配置</div>
+    <div id="content">
+        <div class="toc"><span class="toctitle">Table of Contents</span><ul>
+<li><a href="#_1">集群环境</a></li>
+<li><a href="#hostname">修改hostname</a></li>
+<li><a href="#hadoop">添加一个统一的用户hadoop</a></li>
+<li><a href="#ssh">ssh免密码登陆</a></li>
+<li><a href="#scala">安装scala</a></li>
+<li><a href="#hadoopyarn">安装配置Hadoop和Yarn</a><ul>
+<li><a href="#masterhadoop-opt">在master上配置hadoop (/opt目录下)</a><ul>
+<li><a href="#_2">配置系统变量</a></li>
+<li><a href="#core-sitexml">配置core-site.xml文件</a></li>
+<li><a href="#hdfs-sitexml">配置hdfs-site.xml文件</a></li>
+<li><a href="#maprd-sitexml">配置maprd-site.xml文件</a></li>
+<li><a href="#yarn-sitexml">配置yarn-site.xml文件</a></li>
+<li><a href="#slaves">配置slaves文件</a></li>
+</ul>
+</li>
+<li><a href="#masterhadoop-opt_1">将master上的hadoop目录分发到其他节点 (/opt目录)</a></li>
+<li><a href="#_3">启动和测试</a><ul>
+<li><a href="#master">在Master執行格式化</a></li>
+<li><a href="#hdfsyarn">启动hdfs和yarn</a></li>
+<li><a href="#_4">检验相应进程是否启动</a></li>
+<li><a href="#web">访问web管理界面</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#spark">安装配置Spark</a><ul>
+<li><a href="#masterspark">在master上配置Spark</a><ul>
+<li><a href="#_5">配置系统变量</a></li>
+<li><a href="#spark-envsh">配置spark-env.sh</a></li>
+<li><a href="#slaves_1">配置slaves文件</a></li>
+</ul>
+</li>
+<li><a href="#_6">将文件夹分发至其它节点</a></li>
+<li><a href="#_7">启动并测试</a></li>
+<li><a href="#spark-history-server">配置Spark History Server参考</a></li>
+</ul>
+</li>
+<li><a href="#hbase">安装配置HBase</a><ul>
+<li><a href="#masterhbase">在master上配置HBase</a><ul>
+<li><a href="#_8">配置系统变量</a></li>
+<li><a href="#hbase-envsh">配置hbase-env.sh</a></li>
+<li><a href="#hbase-sitexml">配置hbase-site.xml</a></li>
+<li><a href="#regionservers">配置regionservers文件</a></li>
+</ul>
+</li>
+<li><a href="#_9">将目录分发至所有节点</a></li>
+<li><a href="#hbase_1">启动HBase</a></li>
+<li><a href="#log">常见问题(根据log定位问题)</a><ul>
+<li><a href="#_10">时间同步</a></li>
+<li><a href="#ulimit">修改 ulimit 限制</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<h3 id="_1">集群环境</h3>
+<p>三台机器，分别为<code>namenode</code>，<code>datanode1</code>， <code>datanode2</code>，配置为1 master + 2 slaves 的结构。</p>
+<h3 id="hostname">修改hostname</h3>
+<div class="hlcode"><pre>vim /etc/hostname
+vim /etc/hosts
+sudo service hostname start
+hostname
+</pre></div>
+
+
+<h3 id="hadoop">添加一个统一的用户hadoop</h3>
+<div class="hlcode"><pre><span class="n">sudo</span> <span class="n">adduser</span> <span class="n">hadoop</span>
+<span class="n">sudo</span> <span class="n">usermod</span> <span class="o">-</span><span class="n">a</span> <span class="o">-</span><span class="n">G</span> <span class="n">sudo</span> <span class="n">hadoop</span>
+</pre></div>
+
+
+<h3 id="ssh">ssh免密码登陆</h3>
+<p>创建公钥</p>
+<div class="hlcode"><pre><span class="n">ssh</span><span class="o">-</span><span class="n">keygen</span> <span class="o">-</span><span class="n">t</span> <span class="n">rsa</span>
+</pre></div>
+
+
+<p>把公钥id_rsa.pub复制到远程机器的 /home/username/.ssh目录并命名为authorized_keys</p>
+<div class="hlcode"><pre><span class="n">cat</span> <span class="o">~/</span><span class="p">.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_rsa</span><span class="p">.</span><span class="n">pub</span> <span class="o">|</span> <span class="n">ssh</span> <span class="n">user</span><span class="err">@</span><span class="n">host</span> <span class="s">&quot;mkdir ~/.ssh; cat &gt;&gt; ~/.ssh/authorized_keys&quot;</span>
+</pre></div>
+
+
+<h3 id="scala">安装scala</h3>
+<p>解压至/usr/lib目录，修改系统变量</p>
+<div class="hlcode"><pre><span class="c">#set scala environment</span>
+<span class="nb">export </span><span class="nv">SCALA_HOME</span><span class="o">=</span>/usr/lib/scala-2.10.6
+<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$SCALA_HOME</span>/bin
+</pre></div>
+
+
+<div class="hlcode"><pre><span class="n">source</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">profile</span>
+<span class="n">scala</span> <span class="o">-</span><span class="n">version</span>
+</pre></div>
+
+
+<h3 id="hadoopyarn">安装配置Hadoop和Yarn</h3>
+<h4 id="masterhadoop-opt">在master上配置hadoop (/opt目录下)</h4>
+<p>解压至/opt目录下</p>
+<div class="hlcode"><pre><span class="n">sudo</span> <span class="n">tar</span> <span class="o">-</span><span class="n">xzvf</span> <span class="n">hadoop</span><span class="o">-</span><span class="mf">2.7.1</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span>
+</pre></div>
+
+
+<p>更改文件夹权限</p>
+<div class="hlcode"><pre><span class="n">chown</span> <span class="err">–</span><span class="n">R</span> <span class="n">hadoop</span><span class="o">:</span><span class="n">hadoop</span> <span class="n">hadoop</span><span class="o">-</span><span class="mf">2.7.1</span>
+</pre></div>
+
+
+<p>需要配置有以下几个文件:<code>hadoop-env.sh</code>,<code>yarn-env.sh</code>,<code>mapred-env.sh</code>,<code>core-site.xml</code>,<code>hdfs-site.xml</code>,<code>maprd-site.xml</code>,<code>yarn-site.xml</code>,<code>slaves</code>.</p>
+<p>在<code>hadoop-env.sh</code>,<code>yarn-env.sh</code>,<code>mapred-env.sh</code>中配置一些环境变量，如java路径等。</p>
+<h5 id="_2">配置系统变量</h5>
+<div class="hlcode"><pre><span class="c">#set hadoop environment</span>
+<span class="nb">export </span><span class="nv">HADOOP_PREFIX</span><span class="o">=</span>/opt/hadoop-2.7.1
+<span class="nb">export </span><span class="nv">HADOOP_COMMON_HOME</span><span class="o">=</span><span class="nv">$HADOOP_PREFIX</span>
+<span class="nb">export </span><span class="nv">HADOOP_HDFS_HOME</span><span class="o">=</span><span class="nv">$HADOOP_PREFIX</span>
+<span class="nb">export </span><span class="nv">HADOOP_MAPRED_HOME</span><span class="o">=</span><span class="nv">$HADOOP_PREFIX</span>
+<span class="nb">export </span><span class="nv">HADOOP_YARN_HOME</span><span class="o">=</span><span class="nv">$HADOOP_PREFIX</span>
+<span class="nb">export </span><span class="nv">HADOOP_CONF_DIR</span><span class="o">=</span><span class="nv">$HADOOP_PREFIX</span>/etc/hadoop
+<span class="nb">export </span><span class="nv">YARN_CONF_DIR</span><span class="o">=</span><span class="nv">$HADOOP_PREFIX</span>/etc/hadoop
+<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$HADOOP_PREFIX</span>/bin:<span class="nv">$HADOOP_PREFIX</span>/sbin:<span class="nv">$HADOOP_PREFIX</span>/lib
+</pre></div>
+
+
+<h5 id="core-sitexml">配置core-site.xml文件</h5>
+<div class="hlcode"><pre><span class="nt">&lt;configuration&gt;</span>
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>fs.defaultFS<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>hdfs://namenode:9000<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;description&gt;</span>The name of the default file system.<span class="nt">&lt;/description&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>hadoop.tmp.dir<span class="nt">&lt;/name&gt;</span>
+        <span class="c">&lt;!-- remember to create the directory --&gt;</span>
+        <span class="nt">&lt;value&gt;</span>/opt/hadoop-2.7.1/tmp<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;description&gt;</span>A base for other temporary directories.<span class="nt">&lt;/description&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>io.file.buffer.size<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>131072<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+<span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+
+<h5 id="hdfs-sitexml">配置hdfs-site.xml文件</h5>
+<div class="hlcode"><pre><span class="nt">&lt;configuration&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>dfs.nameservices<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>hadoop-cluster<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>dfs.namenode.secondary.http-address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode:50090<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>dfs.namenode.name.dir<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>file:///opt/hadoop-2.7.1/dfs/name<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;final&gt;</span>true<span class="nt">&lt;/final&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>dfs.datanode.data.dir<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>file:///opt/hadoop-2.7.1/dfs/data<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;final&gt;</span>true<span class="nt">&lt;/final&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>dfs.replication<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>2<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>dfs.webhdfs.enabled<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>dfs.permissions<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+<span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+
+<h5 id="maprd-sitexml">配置maprd-site.xml文件</h5>
+<div class="hlcode"><pre><span class="nt">&lt;configuration&gt;</span>
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>mapreduce.framework.name<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>yarn<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;final&gt;</span>true<span class="nt">&lt;/final&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>mapreduce.jobtracker.http.address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>nameNode:50030<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>mapreduce.jobhistory.address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode:10020<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>mapreduce.jobhistory.webapp.address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode:19888<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>mapreduce.jobhistory.intermediate-done-dir<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>/mr-history/tmp<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>mapreduce.jobhistory.done-dir<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>/mr-history/done<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+<span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+
+<h5 id="yarn-sitexml">配置yarn-site.xml文件</h5>
+<div class="hlcode"><pre><span class="nt">&lt;configuration&gt;</span>
+
+<span class="c">&lt;!-- Site specific YARN configuration properties --&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.nodemanager.aux-services<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>mapreduce_shuffle<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.resourcemanager.address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode:8032<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.resourcemanager.scheduler.address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode:8030<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.resourcemanager.resource-tracker.address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode:8031<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.resourcemanager.admin.address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode:8033<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.resourcemanager.webapp.address<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode:8088<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.nodemanager.local-dirs<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>${hadoop.tmp.dir}/nodemanager/local<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.nodemanager.log-dirs<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>${hadoop.tmp.dir}/nodemanager/logs<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+    <span class="nt">&lt;name&gt;</span>yarn.nodemanager.log.retain-seconds<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;value&gt;</span>10800<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="c">&lt;!-- Where to aggregate logs to. --&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.nodemanager.remote-app-log-dir<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>${hadoop.tmp.dir}/nodemanager/remote<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.nodemanager.remote-app-log-dir-suffix<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>logs<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="c">&lt;!-- enable log aggregation --&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.log-aggregation-enable<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="c">&lt;!-- How long to keep aggregation logs before deleting them. -1 disables. --&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.log-aggregation.retain-seconds<span class="nt">&lt;/name&gt;</span>
+        <span class="c">&lt;!-- three days --&gt;</span>
+        <span class="nt">&lt;value&gt;</span>259200<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="c">&lt;!-- How long to wait between aggregated log retention checks. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time.  --&gt;</span>
+        <span class="nt">&lt;name&gt;</span>yarn.log-aggregation.retain-check-interval-seconds<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>-1<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+<span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+
+<h5 id="slaves">配置slaves文件</h5>
+<div class="hlcode"><pre><span class="n">datanode1</span>
+<span class="n">datanode2</span>
+</pre></div>
+
+
+<h4 id="masterhadoop-opt_1">将master上的hadoop目录分发到其他节点 (/opt目录)</h4>
+<p>注意使用chown更改权限</p>
+<h4 id="_3">启动和测试</h4>
+<h5 id="master">在Master執行格式化</h5>
+<div class="hlcode"><pre><span class="n">hdfs</span> <span class="n">namenode</span> <span class="o">-</span><span class="n">format</span>
+</pre></div>
+
+
+<h5 id="hdfsyarn">启动hdfs和yarn</h5>
+<div class="hlcode"><pre><span class="n">start</span><span class="o">-</span><span class="n">dfs</span><span class="p">.</span><span class="n">sh</span>
+<span class="n">start</span><span class="o">-</span><span class="n">yarn</span><span class="p">.</span><span class="n">sh</span>
+</pre></div>
+
+
+<h5 id="_4">检验相应进程是否启动</h5>
+<p>jps</p>
+<p>master上:<br />
+- NameNode<br />
+- ResourceManager  </p>
+<p>slave上:<br />
+- DataNode<br />
+- NodeManager  </p>
+<h5 id="web">访问web管理界面</h5>
+<p>http://namenode:50070<br />
+http://namenode:8088  </p>
+<h3 id="spark">安装配置Spark</h3>
+<h4 id="masterspark">在master上配置Spark</h4>
+<p>解压至/opt目录下，并注意更改文件夹权限</p>
+<h5 id="_5">配置系统变量</h5>
+<div class="hlcode"><pre><span class="c">#set spark environment</span>
+<span class="nb">export </span><span class="nv">SPARK_HOME</span><span class="o">=</span>/opt/spark-1.5.2
+<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$SPARK_HOME</span>/bin
+</pre></div>
+
+
+<h5 id="spark-envsh">配置spark-env.sh</h5>
+<p>如果使用的版本没有提供hadoop，记得要配置<code>SPARK_DIST_CLASSPATH</code>，参考<a href="https://spark.apache.org/docs/latest/hadoop-provided.html">Using Spark's "Hadoop Free" Build</a>。</p>
+<div class="hlcode"><pre>cp spark-env.sh.template spark-env.sh
+
+<span class="c">#set jdk environment</span>
+<span class="nv">JAVA_HOME</span><span class="o">=</span>/usr/lib/jvm/jdk8
+<span class="nv">SCALA_HOME</span><span class="o">=</span>/usr/lib/scala-2.10.6
+
+<span class="nv">HADOOP_HOME</span><span class="o">=</span>/opt/hadoop-2.7.1
+<span class="nv">HADOOP_CONF_DIR</span><span class="o">=</span><span class="nv">$HADOOP_HOME</span>/etc/hadoop
+<span class="nv">YARN_CONF_DIR</span><span class="o">=</span><span class="nv">$HADOOP_HOME</span>/etc/hadoop
+
+<span class="nv">SPARK_HOME</span><span class="o">=</span>/opt/spark-1.5.2
+
+<span class="c">#remember to provide hadoop classes, since it is not included in this distribution</span>
+<span class="nv">SPARK_DIST_CLASSPATH</span><span class="o">=</span><span class="k">$(</span><span class="nv">$HADOOP_HOME</span>/bin/hadoop classpath<span class="k">)</span>
+
+<span class="nv">SPARK_MASTER_IP</span><span class="o">=</span>namenode
+<span class="nv">SPARK_LOCAL_DIRS</span><span class="o">=</span>/opt/spark-1.5.2
+</pre></div>
+
+
+<h5 id="slaves_1">配置slaves文件</h5>
+<h4 id="_6">将文件夹分发至其它节点</h4>
+<h4 id="_7">启动并测试</h4>
+<div class="hlcode"><pre><span class="n">sbin</span><span class="o">/</span><span class="n">start</span><span class="o">-</span><span class="n">all</span><span class="p">.</span><span class="n">sh</span>
+</pre></div>
+
+
+<p>jps 在master和slave节点上分别能看到Master和Worker进程</p>
+<p>http://master:8080进入web界面，可以看到节点信息。</p>
+<h4 id="spark-history-server">配置Spark History Server<a href="http://spark.apache.org/docs/latest/monitoring.html">参考</a></h4>
+<p>修改<code>spark-default.conf</code>文件：</p>
+<div class="hlcode"><pre><span class="c">#是否记录作业产生的事件或者运行状态(job，stage等使用内存等信息)</span>
+spark.eventLog.enabled          <span class="nb">true</span>
+<span class="c">#日志存放位置</span>
+spark.eventLog.dir              hdfs://namenode:9000/user/spark/logs
+<span class="c">#是否对日志启用压缩</span>
+spark.eventLog.compress         <span class="nb">true</span>
+</pre></div>
+
+
+<p>修改<code>spark-env.sh</code>文件：</p>
+<div class="hlcode"><pre><span class="c">#指定history-server读取日志文件的位置，如不在环境变量中指定，则需要在启动history-server的命令中指定</span>
+<span class="c">#更新频率设为30s</span>
+<span class="nv">SPARK_HISTORY_OPTS</span><span class="o">=</span><span class="s1">&#39;-Dspark.history.fs.logDirectory=hdfs://namenode:9000/user/spark/logs -Dspark.history.fs.update.interval=30&#39;</span>
+</pre></div>
+
+
+<p>访问namenode:18080即可查看</p>
+<p>Spark History Server还提供了一些REST接口，详细见<a href="http://spark.apache.org/docs/latest/monitoring.html">参考</a>。</p>
+<h3 id="hbase">安装配置HBase</h3>
+<h4 id="masterhbase">在master上配置HBase</h4>
+<p>解压至/opt目录下，并注意更改文件夹权限</p>
+<h5 id="_8">配置系统变量</h5>
+<div class="hlcode"><pre><span class="c">#set hbase environment</span>
+<span class="nb">export </span><span class="nv">HBASE_HOME</span><span class="o">=</span>/opt/hbase-1.0.2
+<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$HBASE_HOME</span>/bin
+</pre></div>
+
+
+<h5 id="hbase-envsh">配置hbase-env.sh</h5>
+<div class="hlcode"><pre><span class="nb">export </span><span class="nv">JAVA_HOME</span><span class="o">=</span>/usr/lib/jvm/jdk8
+<span class="nb">export </span><span class="nv">HBASE_CLASSPATH</span><span class="o">=</span>/opt/hadoop-2.7.1/etc/hadoop
+<span class="nb">export </span><span class="nv">HBASE_MANAGES_ZK</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+
+
+<p>其中，<code>HBASE_MANAGES_ZK=true</code>表明将使用HBase内置的zookeeper，也可以单独安装zookeep，这里暂不作介绍。</p>
+<h5 id="hbase-sitexml">配置hbase-site.xml</h5>
+<div class="hlcode"><pre><span class="nt">&lt;configuration&gt;</span>
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>hbase.rootdir<span class="nt">&lt;/name&gt;</span>
+        <span class="c">&lt;!-- keep same with haddop core-site.xml --&gt;</span>
+        <span class="nt">&lt;value&gt;</span>hdfs://namenode:9000/hbase<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="c">&lt;!-- true means distributed mode --&gt;</span>
+        <span class="nt">&lt;name&gt;</span>hbase.cluster.distributed<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="c">&lt;!-- zookeeper server location, should be odd number --&gt;</span>
+        <span class="nt">&lt;name&gt;</span>hbase.zookeeper.quorum<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>namenode,datanode1,datanode2<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="c">&lt;!-- dir for sava zookeep property data --&gt;</span>
+        <span class="nt">&lt;name&gt;</span>hbase.zookeeper.property.dataDir<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>/opt/hbase-1.0.2/zookeeper/data<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>hbase.tmp.dir<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>/opt/hbase-1.0.2/tmp<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+
+<span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+
+<p>第一个属性指定本机的hbase的存储目录，必须与Hadoop集群的core-site.xml文件配置保持一致；第二个属性指定hbase的运行模式，true代表全分布模式；第三个属性指定 Zookeeper 管理的机器，一般为奇数个；第四个属性是zookeeper属性文件存放的路径。</p>
+<h5 id="regionservers">配置regionservers文件</h5>
+<div class="hlcode"><pre><span class="n">datanode1</span>
+<span class="n">datanode2</span>
+</pre></div>
+
+
+<h4 id="_9">将目录分发至所有节点</h4>
+<h4 id="hbase_1">启动HBase</h4>
+<div class="hlcode"><pre><span class="p">.</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">start</span><span class="o">-</span><span class="n">hbase</span><span class="p">.</span><span class="n">sh</span>
+</pre></div>
+
+
+<p>jps 在master和slave节点上分别能看到HMaster和HRegionServer进程，以及HQuorumPeer。</p>
+<p>访问namenode:16010可以看到web UI.</p>
+<h4 id="log">常见问题(根据log定位问题)</h4>
+<h5 id="_10">时间同步</h5>
+<p>所有节点的时间必须是同步的，注意配置好ntp。</p>
+<h5 id="ulimit">修改 ulimit 限制</h5>
+<p>HBase 会在同一时间打开大量的文件句柄和进程，超过 Linux 的默认限制，导致可能会出现如下错误：</p>
+<div class="hlcode"><pre><span class="mi">2010</span><span class="o">-</span><span class="mo">04</span><span class="o">-</span><span class="mo">06</span> <span class="mo">03</span><span class="o">:</span><span class="mo">04</span><span class="o">:</span><span class="mi">37</span><span class="p">,</span><span class="mi">542</span> <span class="n">INFO</span> <span class="n">org</span><span class="p">.</span><span class="n">apache</span><span class="p">.</span><span class="n">hadoop</span><span class="p">.</span><span class="n">hdfs</span><span class="p">.</span><span class="n">DFSClient</span><span class="o">:</span> <span class="n">Exception</span> <span class="n">increateBlockOutputStream</span> <span class="n">java</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">EOFException</span>
+<span class="mi">2010</span><span class="o">-</span><span class="mo">04</span><span class="o">-</span><span class="mo">06</span> <span class="mo">03</span><span class="o">:</span><span class="mo">04</span><span class="o">:</span><span class="mi">37</span><span class="p">,</span><span class="mi">542</span> <span class="n">INFO</span> <span class="n">org</span><span class="p">.</span><span class="n">apache</span><span class="p">.</span><span class="n">hadoop</span><span class="p">.</span><span class="n">hdfs</span><span class="p">.</span><span class="n">DFSClient</span><span class="o">:</span> <span class="n">Abandoning</span> <span class="n">block</span> <span class="n">blk_</span><span class="o">-</span><span class="mi">6935524980745310745</span><span class="n">_1391901</span>
+</pre></div>
+
+
+<p>所以编辑<code>/etc/security/limits.conf</code>文件，添加以下两行，提高能打开的句柄数量和进程数量:</p>
+<div class="hlcode"><pre><span class="n">hadoop</span>  <span class="o">-</span>       <span class="n">nofile</span>  <span class="mi">32768</span>
+<span class="n">hadoop</span>  <span class="o">-</span>       <span class="n">nproc</span>   <span class="mi">32000</span>
+</pre></div>
+
+
+<p>还需要在 <code>/etc/pam.d/common-session</code> 加上这一行，否则配置不会生效:</p>
+<div class="hlcode"><pre><span class="n">session</span> <span class="n">required</span> <span class="n">pam_limits</span><span class="p">.</span><span class="n">so</span>
+</pre></div>
+
+
+<p>最后还要注销（logout或者exit）后再登录，这些配置才能生效！使用<code>ulimit -n -u</code>命令查看最大文件和进程数量是否改变了。记得在每台安装 HBase 的机器上运行。</p>
+    </div>
+
+        </div>
+        <div id="footer">
+            <span>
+                Copyright © 2015 <a href="http://jrwang.me" target="_blank">jrthe42</a>.
+                Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.
+            </span>
+            <span>
+                Theme based on <a href="https://github.com/tankywoo/yasimple" target="_blank">YASimple</a>.
+            </span>
+            <p>Last Update 2015-12-15 21:41:48</p>
+        </div>
+    </body>
+</html>
