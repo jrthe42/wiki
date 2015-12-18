@@ -466,3 +466,19 @@ session required pam_limits.so
 ```
 
 最后还要注销（logout或者exit）后再登录，这些配置才能生效！使用```ulimit -n -u```命令查看最大文件和进程数量是否改变了。记得在每台安装 HBase 的机器上运行。
+
+### 安装配置Sqoop
+
+#### 下载解压
+
+#### 配置环境变量
+- SQOOP_HOME
+- PATH
+
+#### 配置sqoop-env.sh
+
+#### 驱动路径 $SQOOP_HOME/lib
+
+#### sqoop help查看具体命令
+
+#### [文档](http://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html)
