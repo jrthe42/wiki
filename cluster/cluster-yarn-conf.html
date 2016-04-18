@@ -1,0 +1,83 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <link rel="Stylesheet" type="text/css" href="/static/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/static/css/tango.css">
+        <title>YARN 资源分配的配置参数 - JR's Wiki</title>
+        <meta name="keywords" content="wiki"/>
+        <meta name="description" content="JR's Wiki"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico" media="screen" />
+    </head>
+
+    <body>
+        <div id="container">
+            
+    <div id="header">
+        <div id="post-nav">
+            
+            <a href="/">Home</a> » <a href="/#cluster">cluster</a> » YARN 资源分配的配置参数
+            
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <div id="title">YARN 资源分配的配置参数</div>
+    <div id="content">
+        <div class="toc"><span class="toctitle">Table of Contents</span><ul>
+<li><a href="#_1">内存资源</a><ul>
+<li><a href="#nodemanager">NodeManager</a></li>
+<li><a href="#resourcemanager">ResourceManager</a></li>
+<li><a href="#applicationmaster">ApplicationMaster</a></li>
+</ul>
+</li>
+<li><a href="#cpu">CPU 资源</a></li>
+<li><a href="#_2">参考</a></li>
+</ul>
+</div>
+<h3 id="_1">内存资源</h3>
+<h4 id="nodemanager">NodeManager</h4>
+<ul>
+<li><code>yarn.nodemanager.resource.memory-mb</code>，节点最大可用内存，默认 8096 MB (按需调整为 16G)   </li>
+<li><code>yarn.nodemanager.vmem-pmem-ratio</code>，虚拟内存率，任务每使用1MB物理内存，最多可使用虚拟内存量，默认为 2.1   </li>
+<li><code>yarn.nodemanager.pmem-check-enabled</code>，是否启动一个线程检查每个任务正使用的物理内存量，如果任务超出分配值，则直接将其杀掉，默认是true   </li>
+<li><code>yarn.nodemanager.vmem-check-enabled</code>，是否启动一个线程检查每个任务正使用的虚拟内存量，如果任务超出分配值，则直接将其杀掉，默认是true</li>
+</ul>
+<p>在 Centos/RHEL 6 下，由于虚拟内存的分配策略比较激进，可以调高 <code>yarn.nodemanager.vmem-pmem-ratio</code> 或者关闭 <code>yarn.nodemanager.vmem-check-enabled</code>。见<a href="http://stackoverflow.com/questions/21005643/container-is-running-beyond-memory-limits">这个问题</a>。</p>
+<h4 id="resourcemanager">ResourceManager</h4>
+<ul>
+<li><code>yarn.scheduler.minimum-allocation-mb</code>，单个任务可申请的最少物理内存量，默认是1024（MB），如果一个任务申请的物理内存量少于该值，则该对应的值改为这个数</li>
+<li><code>yarn.scheduler.maximum-allocation-mb</code>，单个任务可申请的最多物理内存量，默认是8192（MB）。</li>
+</ul>
+<h4 id="applicationmaster">ApplicationMaster</h4>
+<ul>
+<li><code>mapreduce.map.memory.mb</code>，分配给 Map Container的内存大小，运行时按需指定</li>
+<li><code>mapreduce.reduce.memory.mb</code>，分配给 Reduce Container的内存大小，运行时按需指定</li>
+<li><code>mapreduce.map.java.opts</code>，运行 Map 任务的 jvm 参数，如 -Xmx，-Xms 等选项</li>
+<li><code>mapreduce.reduce.java.opts</code>，运行 Reduce 任务的 jvm 参数，如-Xmx，-Xms等选项</li>
+</ul>
+<h3 id="cpu">CPU 资源</h3>
+<ul>
+<li><code>yarn.nodemanager.resource.cpu-vcores</code>，该节点上 YARN 可使用的虚拟 CPU 个数，默认是8</li>
+<li><code>yarn.scheduler.minimum-allocation-vcores</code>，单个任务可申请的最小虚拟CPU个数, 默认是1</li>
+<li><code>yarn.scheduler.maximum-allocation-vcores</code>，单个任务可申请的最多虚拟CPU个数，默认是32</li>
+</ul>
+<h3 id="_2">参考</h3>
+<ul>
+<li><a href="http://dongxicheng.org/mapreduce-nextgen/hadoop-yarn-memory-cpu-scheduling/">Hadoop YARN中内存和CPU两种资源的调度和隔离</a></li>
+<li><a href="http://blog.csdn.net/suifeng3051/article/details/45477773">Yarn 内存分配管理机制及相关参数配置</a></li>
+</ul>
+    </div>
+
+        </div>
+        <div id="footer">
+            <span>
+                Copyright © 2015 <a href="http://jrwang.me" target="_blank">jrthe42</a>.
+                Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.
+            </span>
+            <span>
+                Theme based on <a href="https://github.com/tankywoo/yasimple" target="_blank">YASimple</a>.
+            </span>
+            <p>Last Update 2016-04-18 22:08:44</p>
+        </div>
+    </body>
+</html>
